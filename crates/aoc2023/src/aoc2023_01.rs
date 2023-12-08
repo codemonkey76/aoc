@@ -1,4 +1,3 @@
-use std::env;
 use aho_corasick::AhoCorasick;
 use aoclib::Runner;
 
@@ -19,12 +18,7 @@ impl Runner for Aoc2023_01 {
     }
 
     fn parse(&mut self) {
-        let exe_path = env::current_exe().expect("Failed to get executable path");
-        println!("Exe path: {:?}", exe_path);
-        let input_path = exe_path.parent().unwrap().parent().unwrap().parent().unwrap()
-            .join("crates/aoc2023/input/2023-01.txt");
-        println!("Input Path: {:?}", input_path);
-        self.lines = aoclib::read_lines(input_path);
+        self.lines = aoclib::read_lines(aoclib::get_input_path(self.name()));
     }
 
     fn part1(&mut self) -> Vec<String> {
@@ -53,7 +47,7 @@ impl Runner for Aoc2023_01 {
 
         for line in &self.lines {
             let matches = ac.find_overlapping_iter(line).collect::<Vec<_>>();
-            let first = matches.iter().nth(0).unwrap().pattern().as_i32() / 2 + 1;
+            let first = matches.get(0).unwrap().pattern().as_i32() / 2 + 1;
             let last = matches.iter().last().unwrap().pattern().as_i32() / 2 + 1;
 
             total += 10 * first + last;
