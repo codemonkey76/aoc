@@ -107,9 +107,6 @@ impl PartNumber {
     }
 
     fn next_to_symbol(&self, symbols: &HashSet<(i64, i64)>) -> bool {
-        let next_to_symbol =self.points.intersection(symbols).next().is_some();
-        let next_to_symbol_str = if next_to_symbol { "yes" } else { "no" };
-        println!("Value: {}, Next to symbol: {}",&self.value, next_to_symbol_str);
-        next_to_symbol
+        self.points.intersection(symbols).next().is_some()
     }
 }
