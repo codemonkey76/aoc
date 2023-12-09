@@ -61,14 +61,15 @@ pub fn run_solution<T: Runner + ?Sized>(solution: &mut T) {
 }
 
 fn print_solution(which: usize, output: &[String], duration: Duration) {
-    let ms = duration.as_millis();
-    let sec_part = ms / 1000;
-    let ms_part = ms % 1000;
+    let us = duration.as_micros();
+    let seconds = duration.as_secs();
+    let milliseconds = duration.subsec_millis();
+    let microseconds = duration.subsec_micros();
 
     let mut i = output.iter();
 
     println!(
-        "{sec_part:3}.{ms_part:03} Part {which}: {}",
+        "{seconds:3}.{milliseconds:03}.{microseconds:03} Part {which}: {}",
         i.next().unwrap()
     );
 
