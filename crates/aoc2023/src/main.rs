@@ -11,7 +11,7 @@ use aoc2023_03::*;
 use aoc2023_04::*;
 
 fn main() {
-    run_2023(Selector::Last);
+    run_2023(Selector::All);
 }
 
 fn run_2023(which: Selector) {
