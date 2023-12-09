@@ -49,23 +49,23 @@ impl Runner for Aoc2023_04 {
     fn part2(&mut self) -> Vec<String> {
         let mut future_cards: HashMap<u32, u32> = HashMap::new();
 
-        for card in &self.cards {
-            let mut multiplier = 1;
-            if let Some(copies) = future_cards.get(&card.id) {
-                multiplier += copies;
-            }
+        self.cards
+            .iter()
+            .for_each(|card| {
+            let multiplier = *future_cards.get(&card.id).unwrap_or(&0) + 1;
+
             let count = card.winning_numbers();
 
-            for i in 0..count {
-                let future_card_id = card.id+i+1;
+            (1..=count).for_each(|i| {
+                let future_card_id = card.id+i;
 
-                if let Some(card_count) = future_cards.get_mut(&future_card_id) {
-                    *card_count += multiplier;
-                } else {
-                    future_cards.insert(future_card_id, multiplier);
-                }
-            }
-        }
+                future_cards
+                    .entry(future_card_id)
+                    .and_modify(|card_count| *card_count += multiplier)
+                    .or_insert_with(|| multiplier);
+            });
+        });
+
         let total = future_cards.values().sum::<u32>();
         let total = total + self.cards.len() as u32;
 
