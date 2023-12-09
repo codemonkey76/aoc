@@ -57,11 +57,10 @@ pub fn run_solution<T: Runner + ?Sized>(solution: &mut T) {
     let start = Instant::now();
     let p2 = solution.part2();
     let p2_time = start.elapsed();
-    print_solution(1, &p2, p2_time);
+    print_solution(2, &p2, p2_time);
 }
 
 fn print_solution(which: usize, output: &[String], duration: Duration) {
-    let us = duration.as_micros();
     let seconds = duration.as_secs();
     let milliseconds = duration.subsec_millis();
     let microseconds = duration.subsec_micros();
