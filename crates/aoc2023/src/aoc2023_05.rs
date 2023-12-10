@@ -68,8 +68,8 @@ impl Runner for Aoc2023_05 {
     fn part2(&mut self) -> Vec<String> {
         let mut min_location: u64 = u64::MAX;
 
-        for seed_range in self.seeds.chunks(2) {
-            for seed in seed_range[0]..seed_range[0]+seed_range[1] {
+        for (range_start, range_length) in self.seeds.chunks(2).map(|chunk| (chunk[0], chunk[1])) {
+            for seed in range_start..range_start+range_length {
                 let mut current = seed;
                 for mapping in &self.mappings {
                     current = mapping.apply_map(current);
@@ -78,22 +78,6 @@ impl Runner for Aoc2023_05 {
                 min_location = min_location.min(current);
             }
         }
-        // for (index, seed) in self.seeds.iter().enumerate() {
-        //     let mut location: u64;
-        //
-        //     if index % 2 == 0 {
-        //         location = self.get_location(*seed);
-        //         lowest_location = location.min(lowest_location);
-        //         last_seed = *seed;
-        //     }
-        //     else {
-        //         for i in last_seed..*seed+last_seed-1 {
-        //             location = self.get_location(i);
-        //             lowest_location = location.min(lowest_location);
-        //         }
-        //
-        //     }
-        // }
 
         aoclib::output(min_location)
     }
