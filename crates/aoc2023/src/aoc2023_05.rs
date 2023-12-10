@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use aoclib::Runner;
 use itertools::Itertools;
 
@@ -18,9 +18,16 @@ impl Aoc2023_05 {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn get_location(seed: u64) -> u64 {
 
-        0
+    pub fn get_location(&self, seed: u64) -> u64 {
+        let soil = self.seed_to_soil.get_destination(seed);
+        let fertilizer = self.soil_to_fertilizer.get_destination(soil);
+        let water = self.fertilizer_to_water.get_destination(fertilizer);
+        let light = self.water_to_light.get_destination(water);
+        let temperature = self.light_to_temperature.get_destination(light);
+        let humidity = self.temperature_to_humidity.get_destination(temperature);
+        let location = self.humidity_to_location.get_destination(humidity);
+        location
     }
 }
 
@@ -73,14 +80,7 @@ impl Runner for Aoc2023_05 {
         let mut seed_to_location : HashMap<u64, u64> = HashMap::new();
 
         for seed in &self.seeds {
-            let soil = self.seed_to_soil.get_destination(*seed);
-            let fertilizer = self.soil_to_fertilizer.get_destination(soil);
-            let water = self.fertilizer_to_water.get_destination(fertilizer);
-            let light = self.water_to_light.get_destination(water);
-            let temperature = self.light_to_temperature.get_destination(light);
-            let humidity = self.temperature_to_humidity.get_destination(temperature);
-            let location = self.humidity_to_location.get_destination(humidity);
-
+            let location = self.get_location(*seed);
 
             seed_to_location.insert(*seed, location);
         }
@@ -92,7 +92,27 @@ impl Runner for Aoc2023_05 {
     }
 
     fn part2(&mut self) -> Vec<String> {
-        aoclib::output("Not Implemented")
+        let mut last_seed: u64 = 0;
+        let mut lowest_location: u64 = u64::MAX;
+
+        for (index, seed) in self.seeds.iter().enumerate() {
+            let mut location: u64;
+
+            if index % 2 == 0 {
+                location = self.get_location(*seed);
+                lowest_location = location.min(lowest_location);
+                last_seed = *seed;
+            }
+            else {
+                for i in last_seed..*seed+last_seed-1 {
+                    location = self.get_location(i);
+                    lowest_location = location.min(lowest_location);
+                }
+
+            }
+        }
+
+        aoclib::output(lowest_location)
     }
 }
 
@@ -125,6 +145,7 @@ impl Map {
         for line in &self.lines {
             if line.source <= source && line.length >= (source.saturating_sub(line.source)) {
                 output = line.destination + source.saturating_sub(line.source);
+                break;
             }
         }
         if output == 0 {
