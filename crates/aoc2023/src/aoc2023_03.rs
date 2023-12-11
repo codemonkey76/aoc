@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use itertools::Itertools;
 use aoclib::Runner;
 
 #[derive(Default)]

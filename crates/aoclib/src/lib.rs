@@ -12,8 +12,8 @@ pub fn read_lines<T: AsRef<Path>>(pathname: T) -> Vec<String> {
         .collect()
 }
 
-pub fn get_input_path(info: (usize, usize)) -> PathBuf {
-    let path = format!("crates/aoc{}/input/{}-{:02}.txt", info.0, info.0, info.1);
+fn get_path(info: (usize, usize), folder: &str) -> PathBuf {
+    let path = format!("crates/aoc{}/{}/{}-{:02}.txt", info.0, folder, info.0, info.1);
     println!("{}", path);
     std::env::current_exe()
         .expect("Failed to get executable path")
@@ -21,6 +21,14 @@ pub fn get_input_path(info: (usize, usize)) -> PathBuf {
         .parent().unwrap()
         .parent().unwrap()
         .join(path)
+}
+
+pub fn get_input_path(info: (usize, usize)) -> PathBuf {
+    get_path(info, "input")
+}
+
+pub fn get_test_path(info: (usize, usize)) -> PathBuf {
+    get_path(info, "test")
 }
 
 pub fn output<T: Display>(output: T) -> Vec<String> {
