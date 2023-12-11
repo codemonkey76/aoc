@@ -63,7 +63,7 @@ pub fn run_solution<T: Runner + ?Sized>(solution: &mut T) {
 fn print_solution(which: usize, output: &[String], duration: Duration) {
     let seconds = duration.as_secs();
     let milliseconds = duration.subsec_millis();
-    let microseconds = duration.subsec_micros();
+    let microseconds = duration.subsec_micros() % 1000;
 
     let mut i = output.iter();
 

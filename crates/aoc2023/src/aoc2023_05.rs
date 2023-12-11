@@ -4,7 +4,7 @@ use itertools::Itertools;
 
 #[derive(Default)]
 pub struct Aoc2023_05 {
-    seeds: Vec<u64>,
+    seeds: Vec<i64>,
     mappings: Vec<Mapping>,
 }
 
@@ -28,7 +28,7 @@ impl Runner for Aoc2023_05 {
             .unwrap()
             .1
             .split(' ')
-            .map(|num| num.trim().parse::<u64>().unwrap())
+            .map(|num| num.trim().parse::<i64>().unwrap())
             .collect::<Vec<_>>();
 
         let mut current_map =  Mapping::default();
@@ -38,9 +38,9 @@ impl Runner for Aoc2023_05 {
                 self.mappings.push(current_map);
                 current_map = Mapping::default();
             } else {
-                let tuple: (u64, u64, u64) = line
+                let tuple: (i64, i64, i64) = line
                     .split(' ')
-                    .map(|num| num.trim().parse::<u64>().unwrap())
+                    .map(|num| num.trim().parse::<i64>().unwrap())
                     .collect_tuple().unwrap();
 
                 current_map.map.push(SingleMap::from(tuple));
@@ -51,7 +51,7 @@ impl Runner for Aoc2023_05 {
     }
 
     fn part1(&mut self) -> Vec<String> {
-        let mut min_location = u64::MAX;
+        let mut min_location = i64::MAX;
 
         for seed in &self.seeds {
             let mut current = *seed;
@@ -66,20 +66,33 @@ impl Runner for Aoc2023_05 {
     }
 
     fn part2(&mut self) -> Vec<String> {
-        let mut min_location: u64 = u64::MAX;
+        let seed_ranges = self.seeds
+            .chunks(2).map(|vec| Range {
+                start: vec[0],
+                end: vec[0] + vec[1],
+            })
+            .collect::<Vec<_>>();
 
-        for (range_start, range_length) in self.seeds.chunks(2).map(|chunk| (chunk[0], chunk[1])) {
-            for seed in range_start..range_start+range_length {
-                let mut current = seed;
-                for mapping in &self.mappings {
-                    current = mapping.apply_map(current);
+        let mut location: i64 = 1_i64;
+
+        loop {
+
+            let mut current = location;
+            for mapping in self.mappings.iter().rev() {
+                current = mapping.reverse_lookup(current);
+            }
+
+            for seed_range in &seed_ranges {
+                if seed_range.contains(&current) {
+                    return aoclib::output(location);
                 }
+            }
+            location += 1;
 
-                min_location = min_location.min(current);
+            if location == i64::MAX {
+                panic!("Couldn't find a location");
             }
         }
-
-        aoclib::output(min_location)
     }
 }
 
@@ -89,10 +102,19 @@ struct Mapping {
 }
 
 impl Mapping {
-    fn apply_map(&self, value: u64) -> u64 {
+    fn apply_map(&self, value: i64) -> i64 {
         for map in &self.map {
             if map.range.contains(&value) {
-                return value+map.delta;
+                return value-map.delta;
+            }
+        }
+        value
+    }
+    fn reverse_lookup(&self, value: i64) -> i64 {
+        for map in &self.map {
+            let rev = value + map.delta;
+            if map.range.contains(&rev) {
+                return rev;
             }
         }
         value
@@ -101,19 +123,19 @@ impl Mapping {
 
 #[derive(Debug, Default, Clone)]
 struct SingleMap {
-    range: Range<u64>,
-    delta: u64
+    range: Range<i64>,
+    delta: i64
 }
 
 
-impl From<(u64, u64, u64)> for SingleMap {
-    fn from(value: (u64, u64, u64)) -> Self {
+impl From<(i64, i64, i64)> for SingleMap {
+    fn from(value: (i64, i64, i64)) -> Self {
         SingleMap {
             range: Range {
                 start: value.1,
                 end: value.1+value.2
             },
-            delta: 1
+            delta: value.1-value.0
         }
     }
 }
