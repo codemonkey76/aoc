@@ -12,8 +12,17 @@ pub fn read_lines<T: AsRef<Path>>(pathname: T) -> Vec<String> {
         .collect()
 }
 
-fn get_path(info: (usize, usize), folder: &str) -> PathBuf {
-    let path = format!("crates/aoc{}/{}/{}-{:02}.txt", info.0, folder, info.0, info.1);
+pub fn read_groups<T: AsRef<Path>>(pathname: T) -> Vec<String> {
+    read_to_string(pathname)
+        .expect("unable to open file")
+        .split("\n\n")
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect()
+}
+
+pub fn get_input_path(info: (usize, usize)) -> PathBuf {
+    let path = format!("crates/aoc{}/input/{}-{:02}.txt", info.0, info.0, info.1);
     println!("{}", path);
     std::env::current_exe()
         .expect("Failed to get executable path")
