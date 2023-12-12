@@ -32,6 +32,14 @@ pub fn get_input_path(info: (usize, usize)) -> PathBuf {
         .join(path)
 }
 
+pub fn get_input_path(info: (usize, usize)) -> PathBuf {
+    get_path(info, "input")
+}
+
+pub fn get_test_path(info: (usize, usize)) -> PathBuf {
+    get_path(info, "test")
+}
+
 pub fn output<T: Display>(output: T) -> Vec<String> {
     vec![format!("{}", output)]
 }
