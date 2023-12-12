@@ -1,9 +1,11 @@
 use std::collections::HashMap;
-use aoclib::Runner;
+use std::path::PathBuf;
+use aoclib::{get_repo_root, Runner};
 use itertools::Itertools;
 
 #[derive(Default)]
 pub struct Aoc2023_05 {
+    input: PathBuf,
     seeds: Vec<u64>,
     maps: HashMap<String, Mapping>
 }
@@ -15,18 +17,23 @@ impl Aoc2023_05 {
 }
 
 impl Runner for Aoc2023_05 {
+
     fn name(&self) -> (usize, usize) {
         (2023, 5)
     }
 
+    fn set_input(&mut self, input: &str) {
+        self.input = get_repo_root().join(input)
+    }
+
     fn parse(&mut self)
     {
-        let mut groups = aoclib::read_groups(aoclib::get_input_path(self.name()));
+        let mut groups = aoclib::read_groups(&self.input);
         self.seeds = parse_seeds(groups.remove(0));
         self.maps = parse_maps(groups);
     }
 
-    fn part1(&mut self) -> Vec<String> {
+    fn part1(&mut self) -> u64 {
         let mut result = u64::MAX;
 
         for seed in &self.seeds {
@@ -38,10 +45,10 @@ impl Runner for Aoc2023_05 {
             result = result.min(current);
         }
 
-        aoclib::output(result)
+        result
     }
 
-    fn part2(&mut self) -> Vec<String> {
+    fn part2(&mut self) -> u64 {
         let mut ranges: Vec<(u64, u64)> = vec![];
 
         for seed_pair in self.seeds.chunks(2) {
@@ -51,8 +58,7 @@ impl Runner for Aoc2023_05 {
         ranges = apply_range_mappings(&mut ranges, &self.maps);
         ranges.sort();
 
-        let output = ranges[0].0;
-        aoclib::output(output)
+        ranges[0].0
     }
 }
 
@@ -161,10 +167,39 @@ impl From<&String> for MapRange {
     fn from(value: &String) -> Self {
         MapRange::from(
             value
-                .split(' ')
+                .split_whitespace()
                 .map(|num| num.parse::<u64>().unwrap())
                 .collect_tuple::<(u64,u64,u64)>()
                 .unwrap()
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::aoc2023_05::Aoc2023_05;
+    use super::*;
+
+    #[test]
+    fn part1() {
+        let mut day5 = Aoc2023_05::new();
+
+        day5.set_input("crates/aoc2023/test/2023-05.txt");
+        day5.parse();
+        let result = day5.part1();
+
+        assert_eq!(35, result);
+
+
+    }
+
+    #[test]
+    fn part2() {
+        let mut day5 = Aoc2023_05::new();
+
+        day5.set_input("crates/aoc2023/test/2023-05.txt");
+        day5.parse();
+        let result = day5.part2();
+        assert_eq!(46, result);
     }
 }

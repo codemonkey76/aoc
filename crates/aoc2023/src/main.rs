@@ -15,7 +15,7 @@ use aoc2023_05::*;
 use crate::aoc2023_06::Aoc2023_06;
 
 fn main() {
-    run_2023(Selector::Last);
+    run_2023(Selector::All);
 }
 
 fn run_2023(which: Selector) {
@@ -34,6 +34,8 @@ fn run_2023(which: Selector) {
         &mut day05,
         &mut day06
     ];
+
+
 
     match which {
         Selector::Last => {

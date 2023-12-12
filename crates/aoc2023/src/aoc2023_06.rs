@@ -1,7 +1,9 @@
-use aoclib::Runner;
+use std::path::PathBuf;
+use aoclib::{get_repo_root, Runner};
 
 #[derive(Default)]
 pub struct Aoc2023_06 {
+    input: PathBuf,
     races: Vec<Race>
 }
 
@@ -12,13 +14,18 @@ impl Aoc2023_06 {
 }
 
 impl Runner for Aoc2023_06 {
+
     fn name(&self) -> (usize, usize) {
         (2023, 6)
     }
 
+    fn set_input(&mut self, input: &str) {
+        self.input = get_repo_root().join(input)
+    }
+
     fn parse(&mut self)
     {
-        let lines = aoclib::read_lines(aoclib::get_input_path(self.name()));
+        let lines = aoclib::read_lines(&self.input);
         let (times, distances) = (get_numbers(&lines[0]), get_numbers(&lines[1]));
         (0..times.len()).for_each(|i| {
             self.races.push(Race {
@@ -28,16 +35,12 @@ impl Runner for Aoc2023_06 {
         });
     }
 
-    fn part1(&mut self) -> Vec<String> {
-        let power = self.races.iter().fold(1, |acc, race| acc * race.max_winners());
-
-        aoclib::output(power)
+    fn part1(&mut self) -> u64 {
+        self.races.iter().fold(1, |acc, race| acc * race.max_winners())
     }
 
-    fn part2(&mut self) -> Vec<String> {
-        let r = Race::combine(self.races.clone());
-
-        aoclib::output(r.max_winners())
+    fn part2(&mut self) -> u64 {
+        Race::combine(self.races.clone()).max_winners()
     }
 }
 
@@ -87,5 +90,34 @@ impl Race {
             }
         });
         winners
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::aoc2023_06::Aoc2023_06;
+    use super::*;
+
+    #[test]
+    fn part1() {
+        let mut day6 = Aoc2023_06::new();
+
+        day6.set_input("crates/aoc2023/test/2023-06.txt");
+        day6.parse();
+        let result = day6.part1();
+
+        assert_eq!(288, result);
+
+
+    }
+
+    #[test]
+    fn part2() {
+        let mut day6 = Aoc2023_06::new();
+
+        day6.set_input("crates/aoc2023/test/2023-06.txt");
+        day6.parse();
+        let result = day6.part2();
+        assert_eq!(71503, result);
     }
 }

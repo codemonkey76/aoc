@@ -1,7 +1,9 @@
-use aoclib::Runner;
+use std::path::PathBuf;
+use aoclib::{get_repo_root, Runner};
 
 #[derive(Default)]
 pub struct Aoc2023_02 {
+    input: PathBuf,
     games: Vec<Game>
 }
 
@@ -12,15 +14,20 @@ impl Aoc2023_02 {
 }
 
 impl Runner for Aoc2023_02 {
+
     fn name(&self) -> (usize, usize) {
         (2023, 2)
     }
 
+    fn set_input(&mut self, input: &str) {
+        self.input = get_repo_root().join(input)
+    }
+
     fn parse(&mut self) {
-        let lines = aoclib::read_lines(aoclib::get_input_path(self.name()));
+        let lines = aoclib::read_lines(&self.input);
         for line in lines {
             let (game, turns) = line.split_once(": ").unwrap();
-            let (_, game_id) = game.split_once(" ").unwrap();
+            let (_, game_id) = game.split_once(' ').unwrap();
 
             let turns = turns.split("; ").collect::<Vec<_>>();
             let mut turn_list = Vec::new();
@@ -28,7 +35,7 @@ impl Runner for Aoc2023_02 {
                 let cubes = t.split(", ").collect::<Vec<_>>();
                 let mut turn = Turn::default();
                 for cube in cubes {
-                    let (amount, color) = cube.split_once(" ").unwrap();
+                    let (amount, color) = cube.split_once(' ').unwrap();
                     let amount: usize = amount.parse().unwrap();
 
                     match &color[0..1] {
@@ -44,7 +51,7 @@ impl Runner for Aoc2023_02 {
         }
     }
 
-    fn part1(&mut self) -> Vec<String> {
+    fn part1(&mut self) -> u64 {
 
         let rule = Turn {
             red: 12,
@@ -52,18 +59,18 @@ impl Runner for Aoc2023_02 {
             blue: 14
         };
 
-        let total: usize = self.games
+        let total: u64 = self.games
             .iter()
             .filter(|game| game.turns.iter().all(|turn| turn.is_valid(&rule)))
-            .map(|game| game.id)
+            .map(|game| game.id as u64)
             .sum();
 
 
-        aoclib::output(total)
+        total
     }
 
-    fn part2(&mut self) -> Vec<String> {
-        let power_sum: usize =
+    fn part2(&mut self) -> u64 {
+        let power_sum =
             self.games
                 .iter()
                 .map(|game| {
@@ -76,11 +83,11 @@ impl Runner for Aoc2023_02 {
                                 acc.2.max(turn.blue)
                             )
                         });
-                    red * green * blue
+                    (red * green * blue) as u64
                 })
                 .sum();
         
-        aoclib::output(power_sum)
+        power_sum
     }
 }
 
@@ -110,5 +117,34 @@ struct Turn {
 impl Turn {
     pub fn is_valid(&self, rule: &Turn) -> bool {
         self.red <= rule.red && self.green <= rule.green && self.blue <= rule.blue
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::aoc2023_02::Aoc2023_02;
+    use super::*;
+
+    #[test]
+    fn part1() {
+        let mut day2 = Aoc2023_02::new();
+
+        day2.set_input("crates/aoc2023/test/2023-02.txt");
+        day2.parse();
+        let result = day2.part1();
+
+        assert_eq!(8, result);
+
+
+    }
+
+    #[test]
+    fn part2() {
+        let mut day2 = Aoc2023_02::new();
+
+        day2.set_input("crates/aoc2023/test/2023-02.txt");
+        day2.parse();
+        let result = day2.part2();
+        assert_eq!(2286, result);
     }
 }

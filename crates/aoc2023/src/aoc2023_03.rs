@@ -1,8 +1,10 @@
 use std::collections::HashSet;
-use aoclib::Runner;
+use std::path::PathBuf;
+use aoclib::{get_repo_root, Runner};
 
 #[derive(Default)]
 pub struct Aoc2023_03 {
+    input: PathBuf,
     numbers: Vec<PartNumber>,
     symbols: HashSet<(i64, i64)>,
     gears: HashSet<(i64, i64)>
@@ -19,8 +21,12 @@ impl Runner for Aoc2023_03 {
         (2023, 3)
     }
 
+    fn set_input(&mut self, input: &str) {
+        self.input = get_repo_root().join(input)
+    }
+
     fn parse(&mut self) {
-        let lines = aoclib::read_lines(aoclib::get_input_path(self.name()));
+        let lines = aoclib::read_lines(&self.input);
 
         let mut cur_number: Option<PartNumber> = None;
 
@@ -47,34 +53,34 @@ impl Runner for Aoc2023_03 {
         }
     }
 
-    fn part1(&mut self) -> Vec<String> {
+    fn part1(&mut self) -> u64 {
         let total = self.numbers
             .iter()
             .filter(|num| num.next_to_symbol(&self.symbols))
-            .map(|num| num.value)
-            .sum::<i64>();
+            .map(|num| num.value as u64)
+            .sum();
 
-        aoclib::output(total)
+        total
     }
 
-    fn part2(&mut self) -> Vec<String> {
+    fn part2(&mut self) -> u64 {
         let mut total = 0;
 
         'next_gear: for gear in &self.gears {
-            let mut matches = Vec::new();
+            let mut matches: Vec<u64> = Vec::new();
             for num in &self.numbers {
                 if num.points.contains(gear) {
                     if matches.len() == 2 {
                         continue 'next_gear;
                     }
-                    matches.push(num.value);
+                    matches.push(num.value as u64);
                 }
             }
             if matches.len() == 2 {
                 total += matches[0] * matches[1];
             }
         }
-        aoclib::output(total)
+        total
     }
 }
 
@@ -107,5 +113,34 @@ impl PartNumber {
 
     fn next_to_symbol(&self, symbols: &HashSet<(i64, i64)>) -> bool {
         self.points.intersection(symbols).next().is_some()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::aoc2023_03::Aoc2023_03;
+    use super::*;
+
+    #[test]
+    fn part1() {
+        let mut day3 = Aoc2023_03::new();
+
+        day3.set_input("crates/aoc2023/test/2023-03.txt");
+        day3.parse();
+        let result = day3.part1();
+
+        assert_eq!(4361, result);
+
+
+    }
+
+    #[test]
+    fn part2() {
+        let mut day3 = Aoc2023_03::new();
+
+        day3.set_input("crates/aoc2023/test/2023-03.txt");
+        day3.parse();
+        let result = day3.part2();
+        assert_eq!(467835, result);
     }
 }
