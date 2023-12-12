@@ -1,11 +1,11 @@
-use std::ops::Range;
+use std::collections::HashMap;
 use aoclib::Runner;
 use itertools::Itertools;
 
 #[derive(Default)]
 pub struct Aoc2023_05 {
-    seeds: Vec<i64>,
-    mappings: Vec<Mapping>,
+    seeds: Vec<u64>,
+    maps: HashMap<String, Mapping>
 }
 
 impl Aoc2023_05 {
@@ -21,121 +21,150 @@ impl Runner for Aoc2023_05 {
 
     fn parse(&mut self)
     {
-        let lines = aoclib::read_lines(aoclib::get_input_path(self.name()));
-
-        self.seeds = lines[0]
-            .split_once(": ")
-            .unwrap()
-            .1
-            .split(' ')
-            .map(|num| num.trim().parse::<i64>().unwrap())
-            .collect::<Vec<_>>();
-
-        let mut current_map =  Mapping::default();
-
-        for line in lines[2..].iter() {
-            if line.contains(':') {
-                self.mappings.push(current_map);
-                current_map = Mapping::default();
-            } else {
-                let tuple: (i64, i64, i64) = line
-                    .split(' ')
-                    .map(|num| num.trim().parse::<i64>().unwrap())
-                    .collect_tuple().unwrap();
-
-                current_map.map.push(SingleMap::from(tuple));
-            }
-        }
-
-        self.mappings.push(current_map);
+        let mut groups = aoclib::read_groups(aoclib::get_input_path(self.name()));
+        self.seeds = parse_seeds(groups.remove(0));
+        self.maps = parse_maps(groups);
     }
 
     fn part1(&mut self) -> Vec<String> {
-        let mut min_location = i64::MAX;
+        let mut result = u64::MAX;
 
         for seed in &self.seeds {
             let mut current = *seed;
-            for mapping in &self.mappings {
-                current = mapping.apply_map(current);
+            for map_name in ["soil", "fertilizer", "water", "light", "temperature", "humidity", "location"] {
+                let mapping = self.maps.get(map_name).unwrap();
+                current = mapping.apply(current);
             }
-
-            min_location = min_location.min(current);
+            result = result.min(current);
         }
 
-        aoclib::output(min_location)
+        aoclib::output(result)
     }
 
     fn part2(&mut self) -> Vec<String> {
-        let seed_ranges = self.seeds
-            .chunks(2).map(|vec| Range {
-                start: vec[0],
-                end: vec[0] + vec[1],
+        let mut ranges: Vec<(u64, u64)> = vec![];
+
+        for seed_pair in self.seeds.chunks(2) {
+            ranges.push((seed_pair[0], seed_pair[0] + seed_pair[1] - 1));
+        }
+
+        ranges = apply_range_mappings(&mut ranges, &self.maps);
+        ranges.sort();
+
+        let output = ranges[0].0;
+        aoclib::output(output)
+    }
+}
+
+fn apply_range_mappings(ranges: &mut Vec<(u64, u64)>, maps: &HashMap<String, Mapping>)  -> Vec<(u64, u64)> {
+    let mut ranges_clone = ranges.clone();
+
+    for map_name in ["soil", "fertilizer", "water", "light", "temperature", "humidity", "location"] {
+        let mapping = maps.get(map_name).unwrap();
+        ranges_clone = apply_range_mapping(&mut ranges_clone, mapping);
+    }
+    ranges_clone
+}
+
+fn apply_range_mapping(ranges: &mut Vec<(u64, u64)>, map: &Mapping) -> Vec<(u64,u64)> {
+    let mut new_ranges = vec![];
+    let mut i = 0;
+
+    while i < ranges.len() {
+        let mut matched = false;
+        for entity in &map.mappings {
+            let entity_range = (entity.src, entity.src+entity.range);
+            let os = ranges[i].0.max(entity_range.0);
+            let oe = ranges[i].1.min(entity_range.1);
+            if os < oe {
+                new_ranges.push((os - entity.src+entity.dest, oe-entity.src+entity.dest));
+                matched = true;
+                // Check these again for other matches
+                if os > ranges[i].0 { ranges.push((ranges[i].0, os)); }
+                if ranges[i].1 > oe { ranges.push((oe, ranges[i].1)); }
+                // If a match found we can break
+                break;
+            }
+        }
+        if !matched { new_ranges.push((ranges[i].0, ranges[i].1)); }
+        i+=1;
+    }
+    new_ranges
+}
+
+fn parse_seeds(seeds: String) -> Vec<u64> {
+    seeds
+        .split_once(": ")
+        .unwrap()
+        .1
+        .split_whitespace()
+        .map(|num| num.parse::<u64>().unwrap())
+        .collect()
+}
+
+fn parse_maps(mut groups: Vec<String>) -> HashMap<String, Mapping> {
+    let mut maps:HashMap<String, Mapping> = HashMap::new();
+
+    while !groups.is_empty() {
+        let item = groups.remove(0);
+        let mut contents = item.split('\n').filter(|str| !str.is_empty()).map(|str| str.to_string()).collect::<Vec<String>>();
+
+        let map_row = contents.remove(0);
+        let (_, _, to) = map_row.split_once(' ').unwrap().0.split('-').collect_tuple().unwrap();
+
+        let mappings : Vec<MapRange> = contents
+            .iter()
+            .map(|line| {
+                MapRange::from(line)
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<MapRange>>();
 
-        let mut location: i64 = 1_i64;
-
-        loop {
-
-            let mut current = location;
-            for mapping in self.mappings.iter().rev() {
-                current = mapping.reverse_lookup(current);
-            }
-
-            for seed_range in &seed_ranges {
-                if seed_range.contains(&current) {
-                    return aoclib::output(location);
-                }
-            }
-            location += 1;
-
-            if location == i64::MAX {
-                panic!("Couldn't find a location");
-            }
-        }
+        maps.insert(to.to_string(), Mapping { mappings });
     }
+    maps
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Mapping {
-    map: Vec<SingleMap>
+    mappings: Vec<MapRange>
 }
-
 impl Mapping {
-    fn apply_map(&self, value: i64) -> i64 {
-        for map in &self.map {
-            if map.range.contains(&value) {
-                return value-map.delta;
-            }
-        }
-        value
-    }
-    fn reverse_lookup(&self, value: i64) -> i64 {
-        for map in &self.map {
-            let rev = value + map.delta;
-            if map.range.contains(&rev) {
-                return rev;
+    fn apply(&self, current: u64) -> u64 {
+        let mut value: u64 = current;
+
+        for entity in &self.mappings {
+            if value >= entity.src && value < entity.src + entity.range {
+                value = entity.dest + (value - entity.src);
+                break;
             }
         }
         value
     }
 }
 
-#[derive(Debug, Default, Clone)]
-struct SingleMap {
-    range: Range<i64>,
-    delta: i64
+#[derive(Debug)]
+struct MapRange {
+    src: u64,
+    dest: u64,
+    range: u64
 }
-
-
-impl From<(i64, i64, i64)> for SingleMap {
-    fn from(value: (i64, i64, i64)) -> Self {
-        SingleMap {
-            range: Range {
-                start: value.1,
-                end: value.1+value.2
-            },
-            delta: value.1-value.0
+impl From<(u64,u64,u64)> for MapRange {
+    fn from(value: (u64, u64, u64)) -> Self {
+        MapRange {
+            src: value.1,
+            dest: value.0,
+            range: value.2
         }
+    }
+}
+impl From<&String> for MapRange {
+    fn from(value: &String) -> Self {
+        MapRange::from(
+            value
+                .split(' ')
+                .map(|num| num.parse::<u64>().unwrap())
+                .collect_tuple::<(u64,u64,u64)>()
+                .unwrap()
+        )
     }
 }
