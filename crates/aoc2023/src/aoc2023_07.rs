@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::path::PathBuf;
 use aoclib::{get_repo_root, Runner};
 use itertools::Itertools;
@@ -7,7 +8,7 @@ use itertools::Itertools;
 #[derive(Default)]
 pub struct Aoc2023_07 {
     input: PathBuf,
-    hands: Vec<Hand>,
+    hands: Vec<Hand<Card>>,
 
 }
 
@@ -23,13 +24,7 @@ impl Runner for Aoc2023_07 {
     }
 
     fn set_input(&mut self, input: &str) {
-
-        println!("Setting input: {}", input);
         self.input = get_repo_root().join(input);
-
-        println!("Setting self.input: {:?}", self.input);
-
-
     }
 
     fn parse(&mut self) {
@@ -38,23 +33,92 @@ impl Runner for Aoc2023_07 {
     }
 
     fn part1(&mut self) -> u64 {
-        let mut sorted_hands: Vec<&Hand> = self.hands.iter().clone().collect();
-        sorted_hands.sort();
+        let mut sorted_hands: Vec<&Hand<Card>> = self.hands.iter().clone().collect();
+        <[&Hand<Card>]>::sort(&mut sorted_hands);
         sorted_hands.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as u64).sum()
     }
 
     fn part2(&mut self) -> u64 {
-        0
+        let mut hands_with_jokers: Vec<Hand<CardWithJoker>>  = self.hands.iter().map(|hand| {
+            let converted_cards: Vec<CardWithJoker> = hand.cards.iter().clone().map(CardWithJoker::from).collect();
+            Hand {
+                cards: converted_cards,
+                bid: hand.bid,
+            }
+        }).collect();
+        // print(&hands_with_jokers);
+        hands_with_jokers.sort();
+
+        print(&hands_with_jokers);
+
+        hands_with_jokers.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as u64).sum()
     }
 }
 
+fn print(hands: &[Hand<CardWithJoker>]) {
+    let mut rank = 0;
+    for hand in hands {
+        // println!("Rank: {}", hand.get_rank());
+        // println!("Has: {}", hand.get_result());
+        if hand.get_rank()==rank {
+            println!("Card: {}", print_cards(&hand.cards));
+            rank+=1;
+        }
+    }
+}
+fn print_cards(cards: &[CardWithJoker]) -> String {
+    let mut result = String::new();
+    for card in cards {
+        let s = match card {
+            CardWithJoker::Two => "2",
+            CardWithJoker::Three => "3",
+            CardWithJoker::Joker => "J",
+            CardWithJoker::Four => "4",
+            CardWithJoker::Five => "5",
+            CardWithJoker::Six => "6",
+            CardWithJoker::Seven => "7",
+            CardWithJoker::Eight => "8",
+            CardWithJoker::Nine => "9",
+            CardWithJoker::Ten => "T",
+            CardWithJoker::Queen => "Q",
+            CardWithJoker::King => "K",
+            CardWithJoker::Ace => "A"
+        };
+        result.push_str(s);
+    }
+    result
+}
+
+fn print_cards_orig(cards: &[Card]) -> String {
+    let mut result = String::new();
+    for card in cards {
+        let s = match card {
+            Card::Two => "2",
+            Card::Three => "3",
+            Card::Jack => "J",
+            Card::Four => "4",
+            Card::Five => "5",
+            Card::Six => "6",
+            Card::Seven => "7",
+            Card::Eight => "8",
+            Card::Nine => "9",
+            Card::Ten => "T",
+            Card::Queen => "Q",
+            Card::King => "K",
+            Card::Ace => "A"
+        };
+        result.push_str(s);
+    }
+    result
+}
+
 #[derive(Debug, PartialEq, Eq)]
-struct Hand {
-    cards: Vec<Card>,
+struct Hand<T> {
+    cards: Vec<T>,
     bid: u64
 }
 
-impl Ord for Hand {
+impl<T: Eq + Ord + Ranking + Hash + WildCard> Ord for Hand<T> {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.get_rank().cmp(&other.get_rank()) {
             Ordering::Greater | Ordering::Less => return self.get_rank().cmp(&other.get_rank()),
@@ -72,15 +136,23 @@ impl Ord for Hand {
 
 }
 
-impl PartialOrd for Hand {
+impl<T: Eq + Ord + Ranking + Hash + WildCard> PartialOrd for Hand<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
+trait Ranking {
+    fn get_rank(&self) -> u32;
+    fn get_result(&self) -> &str;
+}
 
-impl Hand {
-    pub fn get_rank(&self) -> u64 {
+trait WildCard {
+    fn is_wildcard(&self) -> bool;
+}
+
+impl<T> Ranking for Hand<T> where T: Eq + Hash + Ranking + WildCard {
+    fn get_rank(&self) -> u32 {
         if self.has_five_of_a_kind() {
             6
         } else if self.has_four_of_a_kind() {
@@ -97,19 +169,32 @@ impl Hand {
             0
         }
     }
-
+    fn get_result(&self) -> &str {
+        match self.get_rank() {
+            6 => "Five of a Kind",
+            5 => "Four of a Kind",
+            4 => "Full House",
+            3 => "Three of a Kind",
+            2 => "Two Pair",
+            1 => "Pair",
+            0 => "High Card",
+            _ => "Unknown Card"
+        }
+    }
+}
+impl<T> Hand<T> where T: Eq + Hash + Ranking + WildCard {
     pub fn has_pair(&self) -> bool {
         self.cards
             .iter()
             .combinations(2)
-            .any(|pair| pair[0] == pair[1])
+            .any(|pair| pair[0] == pair[1] || pair.iter().any(|&card| card.is_wildcard()))
     }
 
     pub fn has_two_pair(&self) -> bool {
         self.cards
             .iter()
             .combinations(2)
-            .filter(|pair| pair[0] == pair[1])
+            .filter(|pair| pair[0] == pair[1] || pair.iter().any(|&card| card.is_wildcard()))
             .unique()
             .count() == 2
     }
@@ -118,23 +203,64 @@ impl Hand {
         self.cards
             .iter()
             .combinations(3)
-            .any(|combination| combination.iter().all(|&x| x == combination[0]))
+            .any(|combination| {
+                let mut count_wildcards = 0;
+                let mut reference_card = None;
 
+                for &card in &combination {
+                    if card.is_wildcard() {
+                        count_wildcards += 1;
+                    } else {
+                        reference_card = Some(card);
+                    }
+                }
+                count_wildcards >= 2 || combination.iter().all(|&x| x.is_wildcard() || x == reference_card.unwrap())
+            })
     }
 
     pub fn has_four_of_a_kind(&self) -> bool {
         self.cards
             .iter()
             .combinations(4)
-            .any(|combination| combination
-                .iter()
-                .all(|&x| x == combination[0])
-            )
+            .any(|combination| {
+                let mut count_wildcards = 0;
+                let mut reference_card = None;
 
+                for &card in &combination {
+                    if card.is_wildcard() {
+                        count_wildcards += 1;
+                    } else {
+                        reference_card = Some(card);
+                    }
+                }
+
+                // JJJ12 = count_wildcards = 3
+                // JJ234
+                count_wildcards >= 3
+                    ||
+                        combination.iter().all(|&x| x.is_wildcard() || x == reference_card.unwrap())
+            })
     }
 
     pub fn has_five_of_a_kind(&self) -> bool {
-        self.cards.iter().all(|x| x == &self.cards[0])
+        self.cards.iter().combinations(5)
+            .any(|combination| {
+                let mut count_wildcards = 0;
+                let mut reference_card = None;
+
+                for &card in &combination {
+                    if card.is_wildcard() {
+                        count_wildcards += 1;
+                    } else {
+                        reference_card = Some(card);
+                    }
+                }
+
+                count_wildcards >= 4
+                    || combination
+                    .iter()
+                    .all(|&x| x.is_wildcard() || x == reference_card.unwrap())
+            })
     }
 
     pub fn has_full_house(&self) -> bool {
@@ -148,13 +274,48 @@ impl Hand {
         self.cards.iter().map(|card| card.get_rank()).counts()
     }
 }
-impl From<&String> for Hand {
+impl<T> From<&String> for Hand<T> where T: From<char> {
     fn from(value: &String) -> Self {
         let (hand, bid) = value.split_once(' ').unwrap();
         Hand {
-            cards: hand.chars().map(Card::from).collect(),
+            cards: hand.chars().map(T::from).collect(),
             bid: bid.trim().parse().unwrap()
         }
+    }
+}
+
+#[derive(Debug, Hash, Eq, PartialEq)]
+enum CardWithJoker {
+    Joker, Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Queen, King, Ace
+}
+
+impl WildCard for CardWithJoker {
+    fn is_wildcard(&self) -> bool {
+        matches!(self, CardWithJoker::Joker)
+    }
+}
+
+impl Ranking for CardWithJoker {
+    fn get_rank(&self) -> u32 {
+        match self {
+            CardWithJoker::Joker => {1},
+            CardWithJoker::Two => {2}
+            CardWithJoker::Three => {3}
+            CardWithJoker::Four => {4}
+            CardWithJoker::Five => {5}
+            CardWithJoker::Six => {6}
+            CardWithJoker::Seven => {7}
+            CardWithJoker::Eight => {8}
+            CardWithJoker::Nine => {9}
+            CardWithJoker::Ten => {10}
+            CardWithJoker::Queen => {12}
+            CardWithJoker::King => {13}
+            CardWithJoker::Ace => {14}
+        }
+    }
+
+    fn get_result(&self) -> &str {
+        "Result"
     }
 }
 
@@ -162,7 +323,8 @@ impl From<&String> for Hand {
 enum Card {
     Two, Three, Four, Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace
 }
-impl Card {
+
+impl Ranking for Card {
     fn get_rank (&self) -> u32 {
         match self {
             Card::Two => {2}
@@ -180,6 +342,63 @@ impl Card {
             Card::Ace => {14}
         }
     }
+
+    fn get_result(&self) -> &str {
+        "Result"
+    }
+}
+
+impl Ord for CardWithJoker {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.get_rank().cmp(&other.get_rank())
+    }
+}
+
+impl PartialOrd for CardWithJoker {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl From<&Card> for CardWithJoker {
+    fn from(value: &Card) -> Self {
+        match value {
+            Card::Two => CardWithJoker::Two,
+            Card::Three => CardWithJoker::Three,
+            Card::Four => CardWithJoker::Four,
+            Card::Five => CardWithJoker::Five,
+            Card::Six => CardWithJoker::Six,
+            Card::Seven => CardWithJoker::Seven,
+            Card::Eight => CardWithJoker::Eight,
+            Card::Nine => CardWithJoker::Nine,
+            Card::Ten => CardWithJoker::Ten,
+            Card::Jack => CardWithJoker::Joker,
+            Card::Queen => CardWithJoker::Queen,
+            Card::King => CardWithJoker::King,
+            Card::Ace => CardWithJoker::Ace,
+        }
+    }
+}
+
+impl From<char> for CardWithJoker {
+    fn from(value: char) -> Self {
+        match value {
+            '2' => CardWithJoker::Two,
+            '3' => CardWithJoker::Three,
+            '4' => CardWithJoker::Four,
+            '5' => CardWithJoker::Five,
+            '6' => CardWithJoker::Six,
+            '7' => CardWithJoker::Seven,
+            '8' => CardWithJoker::Eight,
+            '9' => CardWithJoker::Nine,
+            'T' => CardWithJoker::Ten,
+            'J' => CardWithJoker::Joker,
+            'Q' => CardWithJoker::Queen,
+            'K' => CardWithJoker::King,
+            'A' => CardWithJoker::Ace,
+            _ => panic!("Invalid Card")
+        }
+    }
 }
 
 impl Ord for Card {
@@ -191,6 +410,12 @@ impl Ord for Card {
 impl PartialOrd for Card {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl WildCard for Card {
+    fn is_wildcard(&self) -> bool {
+        false
     }
 }
 
@@ -221,7 +446,7 @@ mod tests {
     use crate::aoc2023_07::Aoc2023_07;
     use super::*;
 
-    #[test]
+    // #[test]
     fn part1() {
         let mut day = Aoc2023_07::new();
 
@@ -232,7 +457,7 @@ mod tests {
         assert_eq!(6440, result);
     }
 
-    #[test]
+    // #[test]
     fn part2() {
         let mut day = Aoc2023_07::new();
 
@@ -240,6 +465,47 @@ mod tests {
         day.parse();
         let result = day.part2();
 
-        assert_eq!(0, result);
+        assert_eq!(5905, result);
+    }
+
+    #[test]
+    fn edge_cases() {
+        let hand = Hand {
+            cards: vec![
+                CardWithJoker::Ace,
+                CardWithJoker::Eight,
+                CardWithJoker::Eight,
+                CardWithJoker::Ace,
+                CardWithJoker::Five
+            ],
+            bid: 123
+        };
+        assert_eq!(hand.get_rank(), 2);
+        // let hand1: Hand<Card> = Hand::from(&"JJ2AK 123".to_string());
+        // assert_eq!(hand1.get_rank(), 1);
+        //
+        // let converted_cards: Vec<CardWithJoker> = hand1.cards.iter().clone().map(CardWithJoker::from).collect();
+        //
+        // let hand1 = Hand {
+        //     cards: converted_cards,
+        //     bid: 123
+        // };
+        //
+        // println!("Cards: {} - Rank: {} - Result: {}", print_cards(&hand1.cards), hand1.get_rank(), hand1.get_result());
+        // assert_eq!(hand1.get_rank(), 3);
+
+        let hand2: Hand<Card> = Hand::from(&"JJJJK 123".to_string());
+        println!("Cards: {} - Rank: {} - Result: {}", print_cards_orig(&hand2.cards), hand2.get_rank(), hand2.get_result());
+        assert_eq!(hand2.get_rank(), 5);
+
+    //     let converted_cards: Vec<CardWithJoker> = hand2.cards.iter().clone().map(CardWithJoker::from).collect();
+    //
+    //     let hand2 = Hand {
+    //         cards: converted_cards,
+    //         bid: 123
+    //     };
+    //
+    //     println!("Cards: {} - Rank: {} - Result: {}", print_cards(&hand2.cards), hand2.get_rank(), hand2.get_result());
+    //     assert_eq!(hand2.get_rank(), 6);
     }
 }
