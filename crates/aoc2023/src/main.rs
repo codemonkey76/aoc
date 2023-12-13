@@ -6,6 +6,7 @@ mod aoc2023_03;
 mod aoc2023_04;
 mod aoc2023_05;
 mod aoc2023_06;
+mod skeleton;
 
 use aoc2023_01::*;
 use aoc2023_02::*;
