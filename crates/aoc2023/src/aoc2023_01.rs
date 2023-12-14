@@ -23,7 +23,6 @@ impl Runner for Aoc2023_01 {
     }
 
     fn parse(&mut self) {
-        println!("Opening: {:?}", &self.input);
         self.lines = aoclib::read_lines(&self.input);
     }
 

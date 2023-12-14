@@ -36,7 +36,6 @@ pub fn read<T: AsRef<Path>>(pathname: T, separator: &str) -> Vec<String> {
 pub fn get_repo_root() -> PathBuf {
     let path = std::env::current_exe()
         .expect("Failed to get executable path");
-    println!("Executable path: {:?}", path);
     path.parent().unwrap()
         .parent().unwrap()
         .parent().unwrap()
