@@ -33,6 +33,24 @@ pub fn read<T: AsRef<Path>>(pathname: T, separator: &str) -> Vec<String> {
         .collect()
 }
 
+pub fn lcm_of(list: Vec<u64>) -> u64 {
+    list.iter().fold(1, |acc, x| lcm(acc, *x))
+}
+
+pub fn gcd(a: u64, b: u64) -> u64 {
+    // Calculate the greatest common divisor using the Euclidean Algorithm
+    if b == 0 { a } else { gcd(b, a % b) }
+}
+
+pub fn lcm(a: u64, b: u64) -> u64 {
+    // Calculate the lowest common multiple using the Greatest Common Divisor
+    if a == 0 || b == 0 {
+        0
+    } else {
+        (a * b) / gcd(a,b)
+    }
+}
+
 pub fn get_repo_root() -> PathBuf {
     let path = std::env::current_exe()
         .expect("Failed to get executable path");
