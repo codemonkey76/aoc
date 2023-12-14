@@ -39,22 +39,22 @@ mod tests {
 
     #[test]
     fn part1() {
-        let mut dayx = Aoc20xx_xx::new();
+        let mut day = Aoc20xx_xx::new();
 
-        dayx.set_input("crates/aoc20xx/test/20xx-xx.txt");
-        dayx.parse();
-        let result = dayx.part1();
+        day.set_input("crates/aoc20xx/test/20xx-xx.txt");
+        day.parse();
+        let result = day.part1();
 
         assert_eq!(0, result);
     }
 
     #[test]
     fn part2() {
-        let mut dayx = Aoc20xx_xx::new();
+        let mut day = Aoc20xx_xx::new();
 
-        dayx.set_input("crates/aoc20xx/test/20xx-xx.txt");
-        dayx.parse();
-        let result = dayx.part2();
+        day.set_input("crates/aoc20xx/test/20xx-xx.txt");
+        day.parse();
+        let result = day.part2();
 
         assert_eq!(0, result);
     }
