@@ -46,71 +46,12 @@ impl Runner for Aoc2023_07 {
                 bid: hand.bid,
             }
         }).collect();
-        // print(&hands_with_jokers);
+
         hands_with_jokers.sort();
-
-        print(&hands_with_jokers);
-
         hands_with_jokers.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as u64).sum()
     }
 }
 
-fn print(hands: &[Hand<CardWithJoker>]) {
-    let mut rank = 0;
-    for hand in hands {
-        // println!("Rank: {}", hand.get_rank());
-        // println!("Has: {}", hand.get_result());
-        if hand.get_rank()==rank {
-            println!("Card: {}", print_cards(&hand.cards));
-            rank+=1;
-        }
-    }
-}
-fn print_cards(cards: &[CardWithJoker]) -> String {
-    let mut result = String::new();
-    for card in cards {
-        let s = match card {
-            CardWithJoker::Two => "2",
-            CardWithJoker::Three => "3",
-            CardWithJoker::Joker => "J",
-            CardWithJoker::Four => "4",
-            CardWithJoker::Five => "5",
-            CardWithJoker::Six => "6",
-            CardWithJoker::Seven => "7",
-            CardWithJoker::Eight => "8",
-            CardWithJoker::Nine => "9",
-            CardWithJoker::Ten => "T",
-            CardWithJoker::Queen => "Q",
-            CardWithJoker::King => "K",
-            CardWithJoker::Ace => "A"
-        };
-        result.push_str(s);
-    }
-    result
-}
-
-fn print_cards_orig(cards: &[Card]) -> String {
-    let mut result = String::new();
-    for card in cards {
-        let s = match card {
-            Card::Two => "2",
-            Card::Three => "3",
-            Card::Jack => "J",
-            Card::Four => "4",
-            Card::Five => "5",
-            Card::Six => "6",
-            Card::Seven => "7",
-            Card::Eight => "8",
-            Card::Nine => "9",
-            Card::Ten => "T",
-            Card::Queen => "Q",
-            Card::King => "K",
-            Card::Ace => "A"
-        };
-        result.push_str(s);
-    }
-    result
-}
 
 #[derive(Debug, PartialEq, Eq)]
 struct Hand<T> {
@@ -234,8 +175,6 @@ impl<T> Hand<T> where T: Eq + Hash + Ranking + WildCard {
                     }
                 }
 
-                // JJJ12 = count_wildcards = 3
-                // JJ234
                 count_wildcards >= 3
                     ||
                         combination.iter().all(|&x| x.is_wildcard() || x == reference_card.unwrap())
@@ -264,9 +203,27 @@ impl<T> Hand<T> where T: Eq + Hash + Ranking + WildCard {
     }
 
     pub fn has_full_house(&self) -> bool {
-        let rank_counts = self.rank_counts();
+        let wilds = self.cards.iter().filter(|card| card.is_wildcard()).count();
 
-        rank_counts.values().any(|&count| count == 3) && rank_counts.values().any(|&count| count == 2)
+        if wilds >= 3 {
+            // 3 wilds will always be a full house
+            return true;
+        } else if wilds == 2 {
+            // 2 wilds + a pair will always be a full house
+            return self.cards.iter().filter(|card| !card.is_wildcard()).combinations(2).any(|combination| combination[0] == combination[1]);
+        } else if wilds == 1 {
+            self.cards
+                .iter()
+                .filter(|card| !card.is_wildcard())
+                .combinations(2)
+                .filter(|pair| pair[0] == pair[1])
+                .unique()
+                .count() == 2
+        } else {
+            let rank_counts = self.rank_counts();
+
+            return rank_counts.values().any(|&count| count == 3) && rank_counts.values().any(|&count| count == 2);
+        }
     }
 
 
@@ -446,7 +403,7 @@ mod tests {
     use crate::aoc2023_07::Aoc2023_07;
     use super::*;
 
-    // #[test]
+    #[test]
     fn part1() {
         let mut day = Aoc2023_07::new();
 
@@ -457,7 +414,7 @@ mod tests {
         assert_eq!(6440, result);
     }
 
-    // #[test]
+    #[test]
     fn part2() {
         let mut day = Aoc2023_07::new();
 
@@ -466,46 +423,5 @@ mod tests {
         let result = day.part2();
 
         assert_eq!(5905, result);
-    }
-
-    #[test]
-    fn edge_cases() {
-        let hand = Hand {
-            cards: vec![
-                CardWithJoker::Ace,
-                CardWithJoker::Eight,
-                CardWithJoker::Eight,
-                CardWithJoker::Ace,
-                CardWithJoker::Five
-            ],
-            bid: 123
-        };
-        assert_eq!(hand.get_rank(), 2);
-        // let hand1: Hand<Card> = Hand::from(&"JJ2AK 123".to_string());
-        // assert_eq!(hand1.get_rank(), 1);
-        //
-        // let converted_cards: Vec<CardWithJoker> = hand1.cards.iter().clone().map(CardWithJoker::from).collect();
-        //
-        // let hand1 = Hand {
-        //     cards: converted_cards,
-        //     bid: 123
-        // };
-        //
-        // println!("Cards: {} - Rank: {} - Result: {}", print_cards(&hand1.cards), hand1.get_rank(), hand1.get_result());
-        // assert_eq!(hand1.get_rank(), 3);
-
-        let hand2: Hand<Card> = Hand::from(&"JJJJK 123".to_string());
-        println!("Cards: {} - Rank: {} - Result: {}", print_cards_orig(&hand2.cards), hand2.get_rank(), hand2.get_result());
-        assert_eq!(hand2.get_rank(), 5);
-
-    //     let converted_cards: Vec<CardWithJoker> = hand2.cards.iter().clone().map(CardWithJoker::from).collect();
-    //
-    //     let hand2 = Hand {
-    //         cards: converted_cards,
-    //         bid: 123
-    //     };
-    //
-    //     println!("Cards: {} - Rank: {} - Result: {}", print_cards(&hand2.cards), hand2.get_rank(), hand2.get_result());
-    //     assert_eq!(hand2.get_rank(), 6);
     }
 }
