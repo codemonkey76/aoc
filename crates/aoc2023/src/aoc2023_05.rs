@@ -62,8 +62,8 @@ impl Runner for Aoc2023_05 {
     }
 }
 
-fn apply_range_mappings(ranges: &mut Vec<(u64, u64)>, maps: &HashMap<String, Mapping>)  -> Vec<(u64, u64)> {
-    let mut ranges_clone = ranges.clone();
+fn apply_range_mappings(ranges: &mut [(u64, u64)], maps: &HashMap<String, Mapping>)  -> Vec<(u64, u64)> {
+    let mut ranges_clone = ranges.to_vec();
 
     for map_name in ["soil", "fertilizer", "water", "light", "temperature", "humidity", "location"] {
         let mapping = maps.get(map_name).unwrap();

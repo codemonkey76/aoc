@@ -207,7 +207,7 @@ impl<T> Hand<T> where T: Eq + Hash + Ranking + WildCard {
 
         if wilds >= 3 {
             // 3 wilds will always be a full house
-            return true;
+            true
         } else if wilds == 2 {
             // 2 wilds + a pair will always be a full house
             return self.cards.iter().filter(|card| !card.is_wildcard()).combinations(2).any(|combination| combination[0] == combination[1]);
