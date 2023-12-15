@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use aoclib::{gcd_of, get_repo_root, Runner};
+use aoclib::{get_repo_root, lcm_of, Runner};
 
 #[derive(Default)]
 pub struct Aoc2023_08 {
@@ -48,7 +48,7 @@ impl Runner for Aoc2023_08 {
         let mut steps: u64 = 0;
         let mut current = &"AAA".to_string();
         while current != "ZZZ" {
-            current = &self.get(current, steps);
+            current = self.get(current, steps);
 
             steps += 1;
         }
@@ -68,7 +68,7 @@ impl Runner for Aoc2023_08 {
             }
             counts.push(count);
         }
-        gcd_of(counts)
+        lcm_of(counts)
     }
 }
 
