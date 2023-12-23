@@ -32,13 +32,13 @@ impl Runner for Aoc2023_07 {
         self.hands = lines.iter().map(Hand::from).collect();
     }
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
         let mut sorted_hands: Vec<&Hand<Card>> = self.hands.iter().clone().collect();
         <[&Hand<Card>]>::sort(&mut sorted_hands);
-        sorted_hands.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as u64).sum()
+        sorted_hands.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as i64).sum()
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         let mut hands_with_jokers: Vec<Hand<CardWithJoker>>  = self.hands.iter().map(|hand| {
             let converted_cards: Vec<CardWithJoker> = hand.cards.iter().clone().map(CardWithJoker::from).collect();
             Hand {
@@ -48,7 +48,7 @@ impl Runner for Aoc2023_07 {
         }).collect();
 
         hands_with_jokers.sort();
-        hands_with_jokers.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as u64).sum()
+        hands_with_jokers.iter().enumerate().map(|(index, hand)| hand.bid * (index+1) as i64).sum()
     }
 }
 
@@ -56,7 +56,7 @@ impl Runner for Aoc2023_07 {
 #[derive(Debug, PartialEq, Eq)]
 struct Hand<T> {
     cards: Vec<T>,
-    bid: u64
+    bid: i64
 }
 
 impl<T: Eq + Ord + Ranking + Hash + WildCard> Ord for Hand<T> {

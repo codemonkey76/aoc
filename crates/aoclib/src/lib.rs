@@ -33,16 +33,16 @@ pub fn read<T: AsRef<Path>>(pathname: T, separator: &str) -> Vec<String> {
         .collect()
 }
 
-pub fn lcm_of(list: Vec<u64>) -> u64 {
+pub fn lcm_of(list: Vec<i64>) -> i64 {
     list.iter().fold(1, |acc, x| lcm(acc, *x))
 }
 
-pub fn gcd(a: u64, b: u64) -> u64 {
+pub fn gcd(a: i64, b: i64) -> i64 {
     // Calculate the greatest common divisor using the Euclidean Algorithm
     if b == 0 { a } else { gcd(b, a % b) }
 }
 
-pub fn lcm(a: u64, b: u64) -> u64 {
+pub fn lcm(a: i64, b: i64) -> i64 {
     // Calculate the lowest common multiple using the Greatest Common Divisor
     if a == 0 || b == 0 {
         0
@@ -75,8 +75,8 @@ pub trait Runner {
     fn name(&self) -> (usize, usize);
     fn set_input(&mut self, input: &str);
     fn parse(&mut self);
-    fn part1(&mut self) -> u64;
-    fn part2(&mut self) -> u64;
+    fn part1(&mut self) -> i64;
+    fn part2(&mut self) -> i64;
 }
 
 pub fn run_solution<T: Runner + ?Sized>(solution: &mut T) {

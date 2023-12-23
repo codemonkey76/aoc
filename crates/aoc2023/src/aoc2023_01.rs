@@ -26,15 +26,15 @@ impl Runner for Aoc2023_01 {
         self.lines = aoclib::read_lines(&self.input);
     }
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
         let mut total = 0;
 
         for line in &self.lines {
             let nums = line
                 .chars()
                 .filter(|ch| ch.is_ascii_digit())
-                .map(|ch| (ch as u8 - b'0') as u64)
-                .collect::<Vec<u64>>();
+                .map(|ch| (ch as u8 - b'0') as i64)
+                .collect::<Vec<i64>>();
             let first = *nums.first().unwrap();
             let last = *nums.last().unwrap();
 
@@ -44,9 +44,9 @@ impl Runner for Aoc2023_01 {
         total
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         let nums = ["one", "1", "two", "2", "three", "3", "four", "4", "five", "5", "six", "6", "seven", "7", "eight", "8", "nine", "9"];
-        let mut total: u64 = 0;
+        let mut total: i64 = 0;
 
         let ac = AhoCorasick::new(nums).unwrap();
 
@@ -55,7 +55,7 @@ impl Runner for Aoc2023_01 {
             let first = matches.get(0).unwrap().pattern().as_i32() / 2 + 1;
             let last = matches.iter().last().unwrap().pattern().as_i32() / 2 + 1;
 
-            total += (10 * first + last) as u64;
+            total += (10 * first + last) as i64;
         }
 
         total

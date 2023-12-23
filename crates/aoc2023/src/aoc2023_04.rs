@@ -30,22 +30,22 @@ impl Runner for Aoc2023_04 {
         for line in lines {
             let (card, data) = line.split_once(": ").unwrap();
             let (_, num) = card.split_once(' ').unwrap();
-            let num = num.trim().parse::<u32>().unwrap();
+            let num = num.trim().parse::<i32>().unwrap();
             let (winners, numbers) = data.split_once(" | ").unwrap();
             self.cards.push(Card::new(num, winners, numbers));
         }
     }
 
-    fn part1(&mut self) -> u64 {
-        let total: u64 = self.cards
+    fn part1(&mut self) -> i64 {
+        let total: i64 = self.cards
             .iter()
             .map(|card| {
                 let count = card.winning_numbers();
 
                 if count > 0 {
-                    2u64.pow(count - 1)
+                    2i64.pow(count as u32 - 1)
                 } else {
-                    count as u64
+                    count as i64
                 }
             })
             .sum();
@@ -53,8 +53,8 @@ impl Runner for Aoc2023_04 {
         total
     }
 
-    fn part2(&mut self) -> u64 {
-        let mut future_cards: HashMap<u32, u32> = HashMap::new();
+    fn part2(&mut self) -> i64 {
+        let mut future_cards: HashMap<i32, i32> = HashMap::new();
 
         self.cards
             .iter()
@@ -73,40 +73,40 @@ impl Runner for Aoc2023_04 {
             });
         });
 
-        let total: u64 = future_cards.values().map(|num| *num as u64).sum();
+        let total: i64 = future_cards.values().map(|num| *num as i64).sum();
 
-        total + self.cards.len() as u64
+        total + self.cards.len() as i64
     }
 }
 
 
 #[derive(Debug)]
 struct Card {
-    id: u32,
-    winners: Vec<u32>,
-    numbers: Vec<u32>
+    id: i32,
+    winners: Vec<i32>,
+    numbers: Vec<i32>
 }
 
 impl Card {
-    fn new(id: u32, winners: &str, numbers: &str) -> Self {
+    fn new(id: i32, winners: &str, numbers: &str) -> Self {
         let winners = Self::parse(winners);
         let numbers = Self::parse(numbers);
         Card {
             id, winners, numbers
         }
     }
-    fn parse(input: &str) -> Vec<u32> {
+    fn parse(input: &str) -> Vec<i32> {
         input
             .split_whitespace()
             .filter(|num|!num.is_empty())
-            .map(|num|num.parse::<u32>().unwrap())
-            .collect::<Vec<u32>>()
+            .map(|num|num.parse::<i32>().unwrap())
+            .collect::<Vec<i32>>()
     }
-    fn winning_numbers(&self) -> u32 {
+    fn winning_numbers(&self) -> i32 {
         self.winners
             .iter()
             .filter(|winner| self.numbers.contains(winner))
-            .count() as u32
+            .count() as i32
     }
 }
 

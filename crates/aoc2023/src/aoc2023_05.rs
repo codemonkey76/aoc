@@ -6,7 +6,7 @@ use itertools::Itertools;
 #[derive(Default)]
 pub struct Aoc2023_05 {
     input: PathBuf,
-    seeds: Vec<u64>,
+    seeds: Vec<i64>,
     maps: HashMap<String, Mapping>
 }
 
@@ -33,8 +33,8 @@ impl Runner for Aoc2023_05 {
         self.maps = parse_maps(groups);
     }
 
-    fn part1(&mut self) -> u64 {
-        let mut result = u64::MAX;
+    fn part1(&mut self) -> i64 {
+        let mut result = i64::MAX;
 
         for seed in &self.seeds {
             let mut current = *seed;
@@ -48,8 +48,8 @@ impl Runner for Aoc2023_05 {
         result
     }
 
-    fn part2(&mut self) -> u64 {
-        let mut ranges: Vec<(u64, u64)> = vec![];
+    fn part2(&mut self) -> i64 {
+        let mut ranges: Vec<(i64, i64)> = vec![];
 
         for seed_pair in self.seeds.chunks(2) {
             ranges.push((seed_pair[0], seed_pair[0] + seed_pair[1] - 1));
@@ -62,7 +62,7 @@ impl Runner for Aoc2023_05 {
     }
 }
 
-fn apply_range_mappings(ranges: &mut [(u64, u64)], maps: &HashMap<String, Mapping>)  -> Vec<(u64, u64)> {
+fn apply_range_mappings(ranges: &mut [(i64, i64)], maps: &HashMap<String, Mapping>)  -> Vec<(i64, i64)> {
     let mut ranges_clone = ranges.to_vec();
 
     for map_name in ["soil", "fertilizer", "water", "light", "temperature", "humidity", "location"] {
@@ -72,7 +72,7 @@ fn apply_range_mappings(ranges: &mut [(u64, u64)], maps: &HashMap<String, Mappin
     ranges_clone
 }
 
-fn apply_range_mapping(ranges: &mut Vec<(u64, u64)>, map: &Mapping) -> Vec<(u64,u64)> {
+fn apply_range_mapping(ranges: &mut Vec<(i64, i64)>, map: &Mapping) -> Vec<(i64,i64)> {
     let mut new_ranges = vec![];
     let mut i = 0;
 
@@ -98,13 +98,13 @@ fn apply_range_mapping(ranges: &mut Vec<(u64, u64)>, map: &Mapping) -> Vec<(u64,
     new_ranges
 }
 
-fn parse_seeds(seeds: String) -> Vec<u64> {
+fn parse_seeds(seeds: String) -> Vec<i64> {
     seeds
         .split_once(": ")
         .unwrap()
         .1
         .split_whitespace()
-        .map(|num| num.parse::<u64>().unwrap())
+        .map(|num| num.parse::<i64>().unwrap())
         .collect()
 }
 
@@ -135,8 +135,8 @@ struct Mapping {
     mappings: Vec<MapRange>
 }
 impl Mapping {
-    fn apply(&self, current: u64) -> u64 {
-        let mut value: u64 = current;
+    fn apply(&self, current: i64) -> i64 {
+        let mut value: i64 = current;
 
         for entity in &self.mappings {
             if value >= entity.src && value < entity.src + entity.range {
@@ -150,12 +150,12 @@ impl Mapping {
 
 #[derive(Debug)]
 struct MapRange {
-    src: u64,
-    dest: u64,
-    range: u64
+    src: i64,
+    dest: i64,
+    range: i64
 }
-impl From<(u64,u64,u64)> for MapRange {
-    fn from(value: (u64, u64, u64)) -> Self {
+impl From<(i64,i64,i64)> for MapRange {
+    fn from(value: (i64, i64, i64)) -> Self {
         MapRange {
             src: value.1,
             dest: value.0,
@@ -168,8 +168,8 @@ impl From<&String> for MapRange {
         MapRange::from(
             value
                 .split_whitespace()
-                .map(|num| num.parse::<u64>().unwrap())
-                .collect_tuple::<(u64,u64,u64)>()
+                .map(|num| num.parse::<i64>().unwrap())
+                .collect_tuple::<(i64,i64,i64)>()
                 .unwrap()
         )
     }

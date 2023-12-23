@@ -35,11 +35,11 @@ impl Runner for Aoc2023_06 {
         });
     }
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
         self.races.iter().fold(1, |acc, race| acc * race.max_winners())
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         Race::combine(self.races.clone()).max_winners()
     }
 }
@@ -82,7 +82,7 @@ impl Race {
         (num as f64).log10() as u32 + 1
     }
 
-    fn max_winners(&self) -> u64 {
+    fn max_winners(&self) -> i64 {
         let mut winners = 0;
         (1..self.time).for_each(|i| {
             if i*(self.time-i)>self.distance {

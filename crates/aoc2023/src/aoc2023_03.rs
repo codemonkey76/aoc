@@ -53,27 +53,27 @@ impl Runner for Aoc2023_03 {
         }
     }
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
         let total = self.numbers
             .iter()
             .filter(|num| num.next_to_symbol(&self.symbols))
-            .map(|num| num.value as u64)
+            .map(|num| num.value as i64)
             .sum();
 
         total
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         let mut total = 0;
 
         'next_gear: for gear in &self.gears {
-            let mut matches: Vec<u64> = Vec::new();
+            let mut matches: Vec<i64> = Vec::new();
             for num in &self.numbers {
                 if num.points.contains(gear) {
                     if matches.len() == 2 {
                         continue 'next_gear;
                     }
-                    matches.push(num.value as u64);
+                    matches.push(num.value as i64);
                 }
             }
             if matches.len() == 2 {
