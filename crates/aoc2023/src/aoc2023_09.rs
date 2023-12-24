@@ -40,13 +40,63 @@ impl Runner for Aoc2023_09 {
     }
 
     fn part1(&mut self) -> i64 {
-        0
+        self.numbers.iter().fold(Vec::new(), |mut acc, numbers| {
+            get_next_number(&mut acc, numbers);
+            acc
+        }).iter().sum()
     }
 
+
     fn part2(&mut self) -> i64 {
-        0
+        self.numbers.iter().fold(Vec::new(), |mut acc, numbers| {
+            get_previous_number(&mut acc, numbers);
+            acc
+        }).iter().sum()
     }
 }
+
+fn get_previous_number(acc: &mut Vec<i64>, numbers: &[i64]) {
+    let mut tree = build_tree(numbers);
+
+    let mut first_item = 0i64;
+
+    for item in tree.iter_mut().rev() {
+        item.insert(0, item.first().unwrap() - first_item);
+        first_item = *item.first().unwrap();
+    }
+
+    acc.push(first_item)
+}
+
+fn build_tree(numbers: &[i64]) -> Vec<Vec<i64>>{
+    let mut current = numbers.to_vec();
+    let mut tree : Vec<Vec<i64>> = Vec::new();
+
+    tree.push(current.clone());
+
+    while !current.iter().all(|&x| x == 0) {
+        current = get_differences(&current);
+        tree.push(current.clone());
+    }
+    tree
+}
+
+fn get_next_number(acc: &mut Vec<i64>, numbers: &[i64]) {
+    let mut tree = build_tree(numbers);
+
+    let mut last_item = 0i64;
+    for item in tree.iter_mut().rev() {
+        item.push(last_item + item.last().unwrap());
+        last_item = *item.last().unwrap();
+    }
+
+    acc.push(last_item);
+}
+
+fn get_differences(numbers: &[i64]) -> Vec<i64> {
+    numbers.windows(2).map(|w| w[1] - w[0]).collect()
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -60,7 +110,7 @@ mod tests {
         day.parse();
         let result = day.part1();
 
-        assert_eq!(0, result);
+        assert_eq!(114, result);
     }
 
     #[test]
@@ -71,6 +121,7 @@ mod tests {
         day.parse();
         let result = day.part2();
 
-        assert_eq!(0, result);
+        assert_eq!(2, result);
     }
 }
+
