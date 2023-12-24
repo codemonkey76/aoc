@@ -14,7 +14,7 @@ impl Aoc2023_08 {
         Self::default()
     }
 
-    pub fn get(&self, current: &String, count: u64) -> &String {
+    pub fn get(&self, current: &String, count: i64) -> &String {
         let instruction = self.instructions[count as usize % self.instructions.len()];
         match instruction {
             'L' => &self.nodes.get(current).unwrap().0,
@@ -44,8 +44,8 @@ impl Runner for Aoc2023_08 {
         });
     }
 
-    fn part1(&mut self) -> u64 {
-        let mut steps: u64 = 0;
+    fn part1(&mut self) -> i64 {
+        let mut steps: i64 = 0;
         let mut current = &"AAA".to_string();
         while current != "ZZZ" {
             current = self.get(current, steps);
@@ -55,12 +55,12 @@ impl Runner for Aoc2023_08 {
         steps
     }
 
-    fn part2(&mut self) -> u64 {
-        let mut counts: Vec<u64> = vec![];
+    fn part2(&mut self) -> i64 {
+        let mut counts: Vec<i64> = vec![];
 
         for entry in self.nodes.keys().filter(|item| item.ends_with('A')).collect::<Vec<&String>>() {
             let mut current = entry;
-            let mut count: u64 = 0;
+            let mut count: i64 = 0;
 
             while !current.ends_with('Z') {
                 current = self.get(current, count);

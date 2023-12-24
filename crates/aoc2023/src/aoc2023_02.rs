@@ -51,7 +51,7 @@ impl Runner for Aoc2023_02 {
         }
     }
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
 
         let rule = Turn {
             red: 12,
@@ -59,17 +59,17 @@ impl Runner for Aoc2023_02 {
             blue: 14
         };
 
-        let total: u64 = self.games
+        let total: i64 = self.games
             .iter()
             .filter(|game| game.turns.iter().all(|turn| turn.is_valid(&rule)))
-            .map(|game| game.id as u64)
+            .map(|game| game.id as i64)
             .sum();
 
 
         total
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         let power_sum =
             self.games
                 .iter()
@@ -83,7 +83,7 @@ impl Runner for Aoc2023_02 {
                                 acc.2.max(turn.blue)
                             )
                         });
-                    (red * green * blue) as u64
+                    (red * green * blue) as i64
                 })
                 .sum();
         
