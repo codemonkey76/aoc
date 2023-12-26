@@ -23,11 +23,11 @@ impl Runner for Aoc20xx_xx {
 
     fn parse(&mut self) {}
 
-    fn part1(&mut self) -> u64 {
+    fn part1(&mut self) -> i64 {
         0
     }
 
-    fn part2(&mut self) -> u64 {
+    fn part2(&mut self) -> i64 {
         0
     }
 }
