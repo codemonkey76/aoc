@@ -57,7 +57,7 @@ impl Runner for Aoc2023_03 {
         let total = self.numbers
             .iter()
             .filter(|num| num.next_to_symbol(&self.symbols))
-            .map(|num| num.value as i64)
+            .map(|num| num.value)
             .sum();
 
         total
@@ -73,7 +73,7 @@ impl Runner for Aoc2023_03 {
                     if matches.len() == 2 {
                         continue 'next_gear;
                     }
-                    matches.push(num.value as i64);
+                    matches.push(num.value);
                 }
             }
             if matches.len() == 2 {
