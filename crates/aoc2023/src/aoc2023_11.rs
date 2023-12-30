@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::PathBuf;
 use itertools::Itertools;
 use aoclib::{get_repo_root, Runner};
@@ -6,8 +7,8 @@ use aoclib::{get_repo_root, Runner};
 pub struct Aoc2023_11 {
     input: PathBuf,
     map: Vec<Vec<bool>>,
-    expanded_map: Vec<Vec<bool>>,
-    galaxies: Vec<(usize, usize)>
+    rows_to_expand: HashSet<usize>,
+    columns_to_expand: HashSet<usize>,
 }
 
 impl Aoc2023_11 {
@@ -15,11 +16,19 @@ impl Aoc2023_11 {
         Self::default()
     }
 
-    fn draw_map(&self, map: &[Vec<bool>]) {
-        map.iter().for_each(|row| {
-            row.iter().for_each(|&col| if col { print!("#"); } else { print!("."); });
-            println!();
+    fn get_galaxy_positions(&self, inflation: usize) -> HashSet<(usize, usize)> {
+        let mut galaxies: HashSet<(usize, usize)> = HashSet::new();
+
+        self.map.iter().enumerate().for_each(|(row_index, row)| {
+            let rows = self.rows_to_expand.iter().filter(|&x| *x < row_index).count();
+            row.iter().enumerate().for_each(|(col_index, &val)| {
+                if val {
+                    let cols = self.columns_to_expand.iter().filter(|&x| *x < col_index).count();
+                    galaxies.insert(((rows*inflation)+row_index-rows, (cols*inflation)+col_index-cols));
+                }
+            });
         });
+        galaxies
     }
 }
 
@@ -38,74 +47,46 @@ impl Runner for Aoc2023_11 {
             line.chars().map(|c| c == '#').collect()
         }).collect();
 
-        // Expand Rows
-        self.map.iter().for_each(| row| {
+        // get blank Rows
+        self.map.iter().enumerate().for_each(| (row_index, row)| {
             if row.iter().all(|pos| !pos) {
-                self.expanded_map.push(row.clone());
+                self.rows_to_expand.insert(row_index);
             }
-            self.expanded_map.push(row.clone());
         });
 
-        // Expand Cols
-        let mut new_map = vec![];
-        let transposed_map = transpose(&self.expanded_map);
-        transposed_map.iter().for_each(|row| {
-            if row.iter().all(|pos| !pos) {
-                new_map.push(row.clone());
+        // get blank Cols
+        let transposed_map = transpose(&self.map);
+        transposed_map.iter().enumerate().for_each(|(col_index, col)| {
+            if col.iter().all(|pos| !pos) {
+                self.columns_to_expand.insert(col_index);
             }
-            new_map.push(row.clone());
         });
 
-        self.expanded_map = transpose(&new_map);
-
-        // Get Galaxy Positions.
-
-        self.expanded_map.iter().enumerate().for_each(|(row_index, row)| {
-           row.iter().enumerate().for_each(|(col_index, &val)| {
-               if val {
-                   self.galaxies.push((row_index, col_index));
-               }
-           });
-        });
     }
 
     fn part1(&mut self) -> i64 {
-        self.galaxies.iter().combinations(2).map(|pair| {
+        self.get_galaxy_positions(2).iter().combinations(2).map(|pair| {
            let (a, b) = pair.iter().cloned().collect_tuple().unwrap();
-            get_distance(a, b)
-        }).sum()
+            manhattan_distance(a, b)
+        }).sum::<usize>() as i64
     }
 
     fn part2(&mut self) -> i64 {
-        0
+        self.get_galaxy_positions(1000000).iter().combinations(2).map(|pair| {
+            let (a, b) = pair.iter().cloned().collect_tuple().unwrap();
+            manhattan_distance(a, b)
+        }).sum::<usize>() as i64
     }
 }
 
-fn get_distance(a: &(usize, usize), b: &(usize, usize)) -> i64 {
-    let mut steps = 0;
-    let mut a = *a;
+fn manhattan_distance(a: &(usize, usize), b: &(usize, usize)) -> usize {
+    let (x1, y1) = *a;
+    let (x2, y2) = *b;
 
-    while a.0 < b.0 {
-        a.0 += 1;
-        steps += 1;
-    }
+    let dx = if x1 > x2 { x1 - x2 } else { x2 - x1 };
+    let dy = if y1 > y2 { y1 - y2 } else { y2 - y1 };
 
-    while a.0 > b.0 {
-        a.0 -= 1;
-        steps += 1;
-    }
-
-    while a.1 < b.1 {
-        a.1 += 1;
-        steps += 1;
-    }
-
-    while a.1 > b.1 {
-        a.1 -= 1;
-        steps += 1;
-    }
-
-    steps
+    dx + dy
 }
 
 fn transpose(map: &[Vec<bool>]) -> Vec<Vec<bool>> {
