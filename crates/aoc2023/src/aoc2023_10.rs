@@ -98,7 +98,6 @@ impl Aoc2023_10 {
                     let mut shape = *shape;
                     if shape == PipeShape::StartingPosition {
                         shape = self.get_starting_shape();
-                        println!("Starting Shape: {:?}", shape);
                     }
                     match shape {
                         PipeShape::NorthSouth => inside = !inside,
@@ -353,7 +352,6 @@ mod tests {
 
         day.set_input("crates/aoc2023/test/2023-10.txt");
         day.parse();
-        println!("Pipe: {:?}", day.pipe);
         let result = day.part1();
 
         assert_eq!(8, result);

@@ -23,8 +23,6 @@ impl Runner for Aoc2023_09 {
     }
 
     fn parse(&mut self) {
-        println!("{:?}", self.input);
-
         let lines = read_lines(&self.input);
         self.numbers = lines
             .iter()
