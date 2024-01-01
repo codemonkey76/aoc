@@ -6,6 +6,7 @@ use aoclib::{get_repo_root, Runner};
 #[derive(Default)]
 pub struct Aoc2023_11 {
     input: PathBuf,
+    inflation: Option<usize>,
     map: Vec<Vec<bool>>,
     rows_to_expand: HashSet<usize>,
     columns_to_expand: HashSet<usize>,
@@ -16,7 +17,8 @@ impl Aoc2023_11 {
         Self::default()
     }
 
-    fn get_galaxy_positions(&self, inflation: usize) -> HashSet<(usize, usize)> {
+    fn get_galaxy_positions(&self) -> HashSet<(usize, usize)> {
+        let inflation = self.inflation.unwrap_or(1);
         let mut galaxies: HashSet<(usize, usize)> = HashSet::new();
 
         self.map.iter().enumerate().for_each(|(row_index, row)| {
@@ -29,6 +31,17 @@ impl Aoc2023_11 {
             });
         });
         galaxies
+    }
+
+    fn get_distances(&self) -> i64 {
+        self.get_galaxy_positions().iter().combinations(2).map(|pair| {
+            let (a, b) = pair.iter().cloned().collect_tuple().unwrap();
+            manhattan_distance(a, b)
+        }).sum::<usize>() as i64
+    }
+
+    fn set_inflation(&mut self, inflation: usize) {
+        self.inflation = Some(inflation);
     }
 }
 
@@ -65,17 +78,19 @@ impl Runner for Aoc2023_11 {
     }
 
     fn part1(&mut self) -> i64 {
-        self.get_galaxy_positions(2).iter().combinations(2).map(|pair| {
-           let (a, b) = pair.iter().cloned().collect_tuple().unwrap();
-            manhattan_distance(a, b)
-        }).sum::<usize>() as i64
+        if self.inflation.is_none() {
+            self.set_inflation(2);
+        }
+
+        self.get_distances()
     }
 
     fn part2(&mut self) -> i64 {
-        self.get_galaxy_positions(1000000).iter().combinations(2).map(|pair| {
-            let (a, b) = pair.iter().cloned().collect_tuple().unwrap();
-            manhattan_distance(a, b)
-        }).sum::<usize>() as i64
+        if self.inflation.is_none() {
+            self.set_inflation(1_000_000);
+        }
+
+        self.get_distances()
     }
 }
 
@@ -110,6 +125,7 @@ mod tests {
 
         day.set_input("crates/aoc2023/test/2023-11.txt");
         day.parse();
+        day.set_inflation(2);
         let result = day.part1();
 
         assert_eq!(374, result);
@@ -121,8 +137,9 @@ mod tests {
 
         day.set_input("crates/aoc2023/test/2023-11.txt");
         day.parse();
+        day.set_inflation(100);
         let result = day.part2();
 
-        assert_eq!(0, result);
+        assert_eq!(8410, result);
     }
 }
