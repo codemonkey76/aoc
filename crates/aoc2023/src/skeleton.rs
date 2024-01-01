@@ -34,7 +34,6 @@ impl Runner for Aoc20xx_xx {
 
 #[cfg(test)]
 mod tests {
-    use crate::skeleton::Aoc20xx_xx;
     use super::*;
 
     #[test]
