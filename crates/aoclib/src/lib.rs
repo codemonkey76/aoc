@@ -126,3 +126,14 @@ fn get_duration_string(duration: Duration) -> String {
 
     format!("{seconds:3}.{milliseconds:03}.{microseconds:03}")
 }
+
+pub fn transpose(map: &[Vec<bool>]) -> Vec<Vec<bool>> {
+    if map.is_empty() || map.iter().any(|row| row.len() != map[0].len()) {
+        panic!("Invalid input: Empty vector or inconsistent row lengths");
+    }
+
+    let row_count = map.len();
+    let col_count = map[0].len();
+
+    (0..col_count).map(|col_index| (0..row_count).map(|row_index| map[row_index][col_index]).collect()).collect()
+}
