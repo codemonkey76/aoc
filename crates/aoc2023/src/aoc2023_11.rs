@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
 use itertools::Itertools;
-use aoclib::{get_repo_root, Runner};
+use aoclib::{get_repo_root, Runner, transpose};
 
 #[derive(Default)]
 pub struct Aoc2023_11 {
@@ -102,17 +102,6 @@ fn manhattan_distance(a: &(usize, usize), b: &(usize, usize)) -> usize {
     let dy = if y1 > y2 { y1 - y2 } else { y2 - y1 };
 
     dx + dy
-}
-
-fn transpose(map: &[Vec<bool>]) -> Vec<Vec<bool>> {
-    if map.is_empty() || map.iter().any(|row| row.len() != map[0].len()) {
-        panic!("Invalid input: Empty vector or inconsistent row lengths");
-    }
-
-    let row_count = map.len();
-    let col_count = map[0].len();
-
-    (0..col_count).map(|col_index| (0..row_count).map(|row_index| map[row_index][col_index]).collect()).collect()
 }
 
 #[cfg(test)]
