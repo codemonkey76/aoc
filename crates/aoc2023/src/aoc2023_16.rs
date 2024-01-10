@@ -38,39 +38,62 @@ impl Runner for Aoc2023_16 {
     }
 
     fn part1(&mut self) -> i64 {
-        let mut beams: Vec<Beam> = Vec::new();
-        let mut energized: HashSet<(usize, usize)> = HashSet::new();
-        let mut cache: HashSet<(Direction, (usize, usize))> = HashSet::new();
+        let beam = Beam { position: (0,0), direction: Direction::Right};
 
-        beams.push(Beam { position: (0,0), direction: Direction::Right});
-
-        while ! beams.is_empty() {
-            let mut new_beams: Vec<Beam> = Vec::new();
-
-            for beam in beams {
-                energized.insert(beam.position);
-                if cache.insert((beam.direction, beam.position)) {
-                    match beam.follow(&self.grid) {
-                        None => {}
-                        Some(FollowResult::Beam(b)) => {
-                            new_beams.push(b)
-                        },
-                        Some(FollowResult::Beams(b1, b2)) => {
-                            new_beams.push(b1);
-                            new_beams.push(b2);
-                        }
-                    }
-                }
-            }
-            beams = std::mem::take(&mut new_beams);
-        }
-
-        energized.len() as i64
+        follow_beams(beam, &self.grid)
     }
 
     fn part2(&mut self) -> i64 {
-        0
+
+        let mut energized = Vec::new();
+
+        for i in 0..self.grid.len() {
+            energized.push(follow_beams(Beam{ position: (i, 0), direction: Direction::Right}, &self.grid));
+        }
+
+        for i in 0..self.grid.len() {
+            energized.push(follow_beams(Beam{ position: (i, self.grid[0].len()-1), direction: Direction::Left}, &self.grid));
+        }
+
+        for i in 0..self.grid[0].len() {
+            energized.push(follow_beams(Beam{ position: (0, i), direction: Direction::Down}, &self.grid));
+        }
+
+        for i in 0..self.grid[0].len() {
+            energized.push(follow_beams(Beam{ position: (self.grid.len()-1, i), direction: Direction::Up}, &self.grid));
+        }
+
+        energized.iter().fold(0, |acc, &item| item.max(acc))
     }
+}
+
+fn follow_beams(beam: Beam, grid: &[Vec<Tile>]) -> i64 {
+    let mut beams = vec![beam];
+    let mut energized: HashSet<(usize, usize)> = HashSet::new();
+    let mut cache: HashSet<(Direction, (usize, usize))> = HashSet::new();
+
+    while ! beams.is_empty() {
+        let mut new_beams: Vec<Beam> = Vec::new();
+
+        for beam in beams {
+            energized.insert(beam.position);
+            if cache.insert((beam.direction, beam.position)) {
+                match beam.follow(grid) {
+                    None => {}
+                    Some(FollowResult::Beam(b)) => {
+                        new_beams.push(b)
+                    },
+                    Some(FollowResult::Beams(b1, b2)) => {
+                        new_beams.push(b1);
+                        new_beams.push(b2);
+                    }
+                }
+            }
+        }
+        beams = std::mem::take(&mut new_beams);
+    }
+
+    energized.len() as i64
 }
 
 fn _draw_grid(grid: &[Vec<Tile>]) {
@@ -92,7 +115,7 @@ enum FollowResult {
     Beams(Beam, Beam)
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Beam {
     position: (usize, usize),
     direction: Direction
@@ -269,21 +292,21 @@ mod tests {
     fn part1() {
         let mut day = Aoc2023_16::new();
 
-        day.set_input("crates/aoc20xx/test/2023-16.txt");
+        day.set_input("crates/aoc2023/test/2023-16.txt");
         day.parse();
         let result = day.part1();
 
-        assert_eq!(0, result);
+        assert_eq!(46, result);
     }
 
     #[test]
     fn part2() {
         let mut day = Aoc2023_16::new();
 
-        day.set_input("crates/aoc20xx/test/2023-16.txt");
+        day.set_input("crates/aoc2023/test/2023-16.txt");
         day.parse();
         let result = day.part2();
 
-        assert_eq!(0, result);
+        assert_eq!(51, result);
     }
 }
